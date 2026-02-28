@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  waf:
+    image: gbe0/coraza
+    ports:
+      - "8080:80"
+    environment:
+      - CADDY_REVERSE_PROXY=juice-shop:3000
+    command: >
+      sh -c "sed -i 's/SecRuleEngine DetectionOnly/SecRuleEngine On/' /opt/coraza/config/coraza.conf && caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"
+    depends_on:
+      - juice-shop
+
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    expose:
+      - "3000"
