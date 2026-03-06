@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coraza WAF — Security Dashboard</title>
+    <meta name="description" content="Real-time threat monitoring dashboard for Coraza Web Application Firewall">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --bg: #ffffff;
+            --fg: #121212;
+            --fg-muted: #555555;
+            --fg-subtle: rgba(0, 0, 0, 0.35);
+            --border: rgba(0, 0, 0, 0.06);
+            --border-active: rgba(0, 0, 0, 0.6);
+            --accent: #000000;
+            --accent-fg: #ffffff;
+            --danger: #dc2626;
+            --danger-subtle: rgba(220, 38, 38, 0.08);
+            --success: #16a34a;
+            --success-subtle: rgba(22, 163, 74, 0.08);
+            --radius: 0px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 15px;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--fg);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 256px 256px;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 52px;
+            border-bottom: 0.8px solid var(--border);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .nav-brand {
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-brand svg {
+            opacity: 0.8;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: stretch;
+            height: 100%;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 0 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--fg-muted);
+            text-decoration: none;
+            border-left: 0.8px solid var(--border);
+            transition: color 0.15s;
+            position: relative;
+        }
+
+        .nav-links a:last-child {
+            border-right: 0.8px solid var(--border);
+        }
+
+        .nav-links a:hover {
+            color: var(--fg);
+        }
+
+        .nav-links a.active {
+            color: var(--fg);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1.6px;
+            background: var(--fg);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.55rem 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: var(--font);
+            border: 0.8px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.15s;
+            background: transparent;
+            color: var(--fg);
+            position: relative;
+        }
+
+        .btn:hover {
+            border-color: var(--border-active);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--accent-fg);
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.88;
+            border-color: var(--accent);
+        }
+
+        .btn-danger {
+            color: var(--danger);
+            border-color: rgba(220, 38, 38, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-subtle);
+            border-color: rgba(220, 38, 38, 0.4);
+        }
+
+        .plus {
+            color: var(--fg-subtle);
+            font-size: 10px;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            height: calc(100vh - 52px);
+            overflow: hidden;
+        }
+
+        .panel-left {
+            border-right: 0.8px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .hero {
+            padding: 2.5rem 2rem;
+            border-bottom: 0.8px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .hero-eyebrow {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--fg-subtle);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .hero h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 0.9rem;
+            color: var(--fg-muted);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .stats-section {
+            border-bottom: 0.8px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .stats-section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 2rem;
+            border-bottom: 0.8px solid var(--border);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--fg-subtle);
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .stat-cell {
+            padding: 1.3rem 2rem;
+            border-bottom: 0.8px solid var(--border);
+            border-right: 0.8px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        .stat-cell:nth-child(2n) {
+            border-right: none;
+        }
+
+        .stat-cell:hover {
+            background: rgba(0, 0, 0, 0.015);
+        }
+
+        .stat-num {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--fg-subtle);
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-value.danger {
+            color: var(--danger);
+        }
+
+        .stat-value.success {
+            color: var(--success);
+        }
+
+        .description {
+            padding: 2rem;
+            flex-grow: 1;
+        }
+
+        .description h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            letter-spacing: -0.01em;
+        }
+
+        .description p {
+            font-size: 0.82rem;
+            color: var(--fg-muted);
+            line-height: 1.7;
+        }
+
+        .desc-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 1rem;
+        }
+
+        .desc-list li {
+            font-size: 0.8rem;
+            color: var(--fg-muted);
+            padding: 0.5rem 0;
+            border-bottom: 0.8px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .desc-list li:last-child {
+            border-bottom: none;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border: 0.8px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--fg-muted);
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .panel-right {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-right-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 44px;
+            border-bottom: 0.8px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .panel-right-header-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--fg-subtle);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
+            }
+
+            50% {
+                opacity: 0.6;
+                box-shadow: 0 0 0 4px rgba(22, 163, 74, 0);
+            }
+        }
+
+        .log-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.7rem 1rem;
+            font-size: 0.68rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--fg-subtle);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            border-bottom: 0.8px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            font-size: 0.82rem;
+            border-bottom: 0.8px solid var(--border);
+            vertical-align: top;
+        }
+
+        tr:hover td {
+            background: rgba(0, 0, 0, 0.012);
+        }
+
+        .badge-blocked {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--danger);
+            background: var(--danger-subtle);
+            border: 0.8px solid rgba(220, 38, 38, 0.15);
+            border-radius: var(--radius);
+        }
+
+        .rule-code {
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.78rem;
+            color: var(--fg);
+            background: rgba(0, 0, 0, 0.04);
+            padding: 0.15rem 0.45rem;
+            border-radius: var(--radius);
+            border: 0.8px solid var(--border);
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .payload-cell {
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.75rem;
+            color: var(--danger);
+            word-break: break-all;
+            max-width: 260px;
+        }
+
+        .msg-cell {
+            color: var(--fg-muted);
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .uri-cell {
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.78rem;
+            color: var(--fg);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 0;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            color: var(--fg-subtle);
+            text-align: center;
+            gap: 0.8rem;
+        }
+
+        .empty-state svg {
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 0.85rem;
+        }
+
+        .error-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 2rem;
+            color: var(--danger);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 840px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-left {
+                border-right: none;
+                border-bottom: 0.8px solid var(--border);
+            }
+
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+        }
+
+        .log-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .log-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .log-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-brand">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            CORAZA-AUDIT
+        </div>
+        <div class="nav-links">
+            <a href="index.html" class="active">Dashboard</a>
+            <a href="rules.html">Rules</a>
+            <a href="config.html">Config</a>
+        </div>
+        <div class="nav-actions">
+            <span class="plus">+</span>
+            <button class="btn btn-primary" onclick="fetchData()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 2v6h-6" />
+                    <path d="M21 13a9 9 0 1 1-3-7.7L21 8" />
+                </svg>
+                Sync
+            </button>
+        </div>
+    </nav>
+    <div class="main">
+        <div class="panel-left">
+            <div class="hero">
+                <div class="hero-eyebrow">Security Monitor</div>
+                <h1>Coraza WAF<br>Threat Landscape</h1>
+                <div class="hero-actions">
+                    <button class="btn btn-primary" onclick="fetchData()">Refresh Logs</button>
+                    <button class="btn btn-danger" onclick="clearLogs()">Clear Logs</button>
+                    <button class="btn" onclick="replayAttacks()">Replay Attacks</button>
+                    <span class="plus">+</span>
+                </div>
+            </div>
+            <div class="stats-section">
+                <div class="stats-section-header">
+                    <span>01</span> METRICS
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-cell">
+                        <div class="stat-label">Blocked Requests</div>
+                        <div class="stat-num">
+                            <span class="stat-value danger" id="blocked-requests">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-cell">
+                        <div class="stat-label">Rule Matches</div>
+                        <div class="stat-num">
+                            <span class="stat-value" id="rule-matches">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-cell">
+                        <div class="stat-label">Last Rule Fired</div>
+                        <div class="stat-num">
+                            <span class="stat-value" id="latest-rule">—</span>
+                        </div>
+                    </div>
+                    <div class="stat-cell">
+                        <div class="stat-label">WAF Engine</div>
+                        <div class="stat-num">
+                            <span class="stat-value success">On</span>
+                        </div>
+                    </div>
+                    <div class="stat-cell">
+                        <div class="stat-label">Mode</div>
+                        <div class="stat-num">
+                            <span class="stat-value">Block</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <h3>Architecture</h3>
+                <p>Coraza is a high-performance, Go-native WAF engine acting as a drop-in replacement for ModSecurity.
+                <ul class="desc-list">
+                    <li><span class="tag">Engine</span> Coraza WAF (Go)</li>
+                    <li><span class="tag">Proxy</span> Caddy Server</li>
+                    <li><span class="tag">Target</span> OWASP Juice Shop</li>
+                    <li><span class="tag">Rules</span> OWASP CRS v4</li>
+                    <li><span class="tag">Port</span> 8080</li>
+                </ul>
+            </div>
+        </div>
+        <div class="panel-right">
+            <div class="panel-right-header">
+                <div class="panel-right-header-title">
+                    <span class="live-dot"></span>
+                    Audit Log — Live Feed
+                </div>
+                <span class="plus">+</span>
+            </div>
+            <div class="log-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 9%;">Action</th>
+                            <th style="width: 23%;">URI</th>
+                            <th style="width: 10%;">Rule ID</th>
+                            <th style="width: 23%;">Detection Event</th>
+                            <th style="width: 30%;">Payload</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-body">
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                    </svg>
+                                    <p>Scanning for threats…</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+        let loadedLogs = new Set();
+        let logCounter = 0;
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                const tbody = document.getElementById('logs-body');
+                if (!data.attacks || data.attacks.length === 0) {
+                    if (loadedLogs.size > 0) {
+                        tbody.innerHTML = '';
+                        loadedLogs.clear();
+                        logCounter = 0;
+                    }
+                    if (!tbody.querySelector('.empty-state')) {
+                        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p style="color:var(--success);">No threats detected. All clear.</p></div></td></tr>`;
+                    }
+                    document.getElementById('blocked-requests').textContent = '0';
+                    document.getElementById('rule-matches').textContent = '0';
+                    document.getElementById('latest-rule').textContent = '—';
+                    return;
+                }
+                const uniqueTx = new Set(data.attacks.map(a => a.tx_id)).size;
+                document.getElementById('blocked-requests').textContent = uniqueTx;
+                document.getElementById('rule-matches').textContent = data.attacks.length;
+                document.getElementById('latest-rule').textContent = data.attacks[data.attacks.length - 1].rule_id;
+                const emptyPlaceholder = tbody.querySelector('.empty-state');
+                const errorState = tbody.querySelector('.error-state');
+                if (emptyPlaceholder || errorState) tbody.innerHTML = '';
+                data.attacks.forEach((a) => {
+                    const uniqueKey = `${a.tx_id}-${a.rule_id}`;
+                    if (!loadedLogs.has(uniqueKey)) {
+                        loadedLogs.add(uniqueKey);
+                        logCounter++;
+                        const row = document.createElement('tr');
+                        const delay = loadedLogs.size < 25 ? (loadedLogs.size * 0.04) : 0.05;
+                        row.style.animation = `slideIn 0.2s ease ${delay}s both`;
+                        row.innerHTML = `
+                            <td style="color:var(--fg-subtle);font-size:0.75rem;font-weight:500;">${String(logCounter).padStart(2, '0')}</td>
+                            <td><span class="badge-blocked">● ${a.status}</span></td>
+                            <td class="uri-cell" title="${escapeHTML(a.uri)}">${escapeHTML(a.uri)}</td>
+                            <td><span class="rule-code">${a.rule_id}</span></td>
+                            <td class="msg-cell" title="${escapeHTML(a.message)}">${escapeHTML(a.message)}</td>
+                            <td class="payload-cell">${escapeHTML(a.matched_data)}</td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+                });
+            } catch (err) {
+                const tbody = document.getElementById('logs-body');
+                if (loadedLogs.size === 0 && !tbody.querySelector('.error-state')) {
+                    tbody.innerHTML = `<tr><td colspan="6"><div class="error-state">Connection lost — verify dashboard.py is running.</div></td></tr>`;
+                }
+            }
+        }
+        async function clearLogs() {
+            if (!confirm('This will restart the WAF container and clear all current audit logs. Proceed?')) return;
+            try {
+                const btn = document.querySelector('.btn-danger');
+                const originalText = btn.textContent;
+                btn.textContent = 'Clearing...';
+                btn.disabled = true;
+                const response = await fetch('/api/clear');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    setTimeout(fetchData, 2000);
+                } else {
+                    alert('Error clearing logs: ' + data.message);
+                }
+                btn.textContent = originalText;
+                btn.disabled = false;
+            } catch (err) {
+                alert('Connection failed while clearing logs.');
+            }
+        }
+        async function replayAttacks() {
+            alert('Run: python replay_and_report.py\nThen click "Sync" to refresh logs.');
+        }
+        fetchData();
+        setInterval(fetchData, 8000);
+    </script>
+</body>
+
+</html>
