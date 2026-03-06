@@ -2,7 +2,7 @@
 
 A comprehensive security monitoring and testing environment for **Coraza WAF**, featuring a real-time dashboard and an extensive attack suite.
 
-## 🚀 Key Features
+## Key Features
 
 - **Native Go Engine**: Leverages the high-performance Coraza WAF library.
 - **Security Dashboard**: Real-time web UI for monitoring threat landscapes, rule matches, and audit logs.
@@ -11,7 +11,7 @@ A comprehensive security monitoring and testing environment for **Coraza WAF**, 
 - **OWASP CRS v4**: Fully integrated with the latest Core Rule Set.
 - **Automated Reporting**: Generates instant Markdown analysis of WAF performance.
 
-## 🏗️ Architecture
+## Architecture
 
 - **WAF Engine**: `gbe0/coraza` (Coraza + Caddy)
 - **Target Application**: OWASP Juice Shop
@@ -19,7 +19,7 @@ A comprehensive security monitoring and testing environment for **Coraza WAF**, 
 - **Frontend**: Vanilla JS / CSS (Tailored Aesthetic)
 - **Log Management**: Docker Audit Log Tail (1000 lines)
 
-## 🛠️ Quick Start
+## Quick Start
 
 ### 1. Spin up the WAF & Juice Shop
 ```bash
@@ -37,7 +37,7 @@ python dashboard.py
 .\attack_suite.ps1
 ```
 
-## 📂 Core Components
+## Core Components
 
 - **`dashboard.py`**: The brain of the dashboard, parsing Docker logs and serving the monitoring API.
 - **`index.html`**: The main monitor interface with real-time stats and live log feed.
@@ -45,14 +45,14 @@ python dashboard.py
 - **`coraza.conf`**: Optimized WAF engine configuration.
 - **`replay_and_report.py`**: Standalone analysis tool that generates `attack_report.md`.
 
-## 🛡️ Security Lab Focus
+## Security Lab Focus
 This suite is designed to test WAF efficacy against modern attack vectors including:
 - **SQL Injection**: Login bypass, union-based, and blind SQLi.
 - **XSS**: Script injection, event handlers, and iframe-based attacks.
 - **Modern Vectors**: Prototype Pollution, SSTI, Log4Shell, and NoSQLi.
 - **Protocol Abuse**: CRLF injection and HTTP splitting.
 
-## 📊 Dashboard Access
+## Dashboard Access
 - **Main View**: `http://localhost:8081/index.html`
 - **Rules Inventory**: `http://localhost:8081/rules.html`
 - **Engine Config**: `http://localhost:8081/config.html`
