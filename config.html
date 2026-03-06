@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --font: 'Inter', -apple-system, sans-serif;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             --bg: #ffffff;
             --fg: #121212;
             --fg-muted: #555555;
@@ -18,7 +18,24 @@
             --border: rgba(0, 0, 0, 0.06);
             --border-active: rgba(0, 0, 0, 0.6);
             --accent: #000000;
+            --accent-fg: #ffffff;
+            --danger: #dc2626;
+            --danger-subtle: rgba(220, 38, 38, 0.08);
+            --success: #16a34a;
+            --success-subtle: rgba(22, 163, 74, 0.08);
             --radius: 0px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 15px;
         }
 
         body {
@@ -27,7 +44,7 @@
             color: var(--fg);
             height: 100vh;
             overflow: hidden;
-            margin: 0;
+            position: relative;
         }
 
         body::before {
@@ -55,17 +72,25 @@
             border-bottom: 0.8px solid var(--border);
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .nav-brand {
             font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: -0.02em;
             display: flex;
             align-items: center;
             gap: 0.6rem;
         }
 
+        .nav-brand svg {
+            opacity: 0.8;
+        }
+
         .nav-links {
             display: flex;
+            align-items: stretch;
             height: 100%;
         }
 
@@ -78,11 +103,16 @@
             color: var(--fg-muted);
             text-decoration: none;
             border-left: 0.8px solid var(--border);
+            transition: color 0.15s;
             position: relative;
         }
 
         .nav-links a:last-child {
             border-right: 0.8px solid var(--border);
+        }
+
+        .nav-links a:hover {
+            color: var(--fg);
         }
 
         .nav-links a.active {
@@ -97,6 +127,51 @@
             right: 0;
             height: 1.6px;
             background: var(--fg);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.55rem 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: var(--font);
+            border: 0.8px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.15s;
+            background: transparent;
+            color: var(--fg);
+            position: relative;
+        }
+
+        .btn:hover {
+            border-color: var(--border-active);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--accent-fg);
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.88;
+            border-color: var(--accent);
+        }
+
+        .plus {
+            color: var(--fg-subtle);
+            font-size: 10px;
+            line-height: 1;
+            user-select: none;
         }
 
         .main {
@@ -183,13 +258,29 @@
 
 <body>
     <nav>
-        <div class="nav-brand">CORAZA-AUDIT</div>
+        <div class="nav-brand">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            CORAZA-AUDIT
+        </div>
         <div class="nav-links">
             <a href="index.html">Dashboard</a>
             <a href="rules.html">Rules</a>
             <a href="config.html" class="active">Config</a>
         </div>
-        <div style="padding-right: 2rem;"><span style="font-size: 10px; color: rgba(0,0,0,0.3);">+</span></div>
+        <div class="nav-actions">
+            <span class="plus">+</span>
+            <button class="btn btn-primary" onclick="fetchConfig()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 2v6h-6" />
+                    <path d="M21 13a9 9 0 1 1-3-7.7L21 8" />
+                </svg>
+                Sync
+            </button>
+        </div>
     </nav>
     <div class="main">
         <div class="panel-left">
