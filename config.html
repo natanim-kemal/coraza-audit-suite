@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coraza WAF — Configuration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font: 'Inter', -apple-system, sans-serif;
+            --bg: #ffffff;
+            --fg: #121212;
+            --fg-muted: #555555;
+            --fg-subtle: rgba(0, 0, 0, 0.35);
+            --border: rgba(0, 0, 0, 0.06);
+            --border-active: rgba(0, 0, 0, 0.6);
+            --accent: #000000;
+            --radius: 0px;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--fg);
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 52px;
+            border-bottom: 0.8px solid var(--border);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-brand {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-links {
+            display: flex;
+            height: 100%;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 0 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--fg-muted);
+            text-decoration: none;
+            border-left: 0.8px solid var(--border);
+            position: relative;
+        }
+
+        .nav-links a:last-child {
+            border-right: 0.8px solid var(--border);
+        }
+
+        .nav-links a.active {
+            color: var(--fg);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1.6px;
+            background: var(--fg);
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            height: calc(100vh - 52px);
+            overflow: hidden;
+        }
+
+        .panel-left {
+            border-right: 0.8px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 2.5rem 2rem;
+        }
+
+        .panel-left h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .config-card {
+            border-bottom: 0.8px solid var(--border);
+            padding: 1.2rem 0;
+        }
+
+        .config-label {
+            font-size: 0.75rem;
+            color: var(--fg-subtle);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .config-value {
+            font-family: monospace;
+            font-size: 0.95rem;
+            margin-top: 0.4rem;
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .panel-right {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #fafafa;
+        }
+
+        .file-tabs {
+            display: flex;
+            border-bottom: 0.8px solid var(--border);
+            background: #fff;
+        }
+
+        .tab {
+            padding: 0.8rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--fg-muted);
+            cursor: pointer;
+            border-right: 0.8px solid var(--border);
+            text-transform: uppercase;
+        }
+
+        .tab.active {
+            background: #fafafa;
+            color: var(--fg);
+        }
+
+        .code-view {
+            flex-grow: 1;
+            overflow: auto;
+            padding: 2rem;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #334155;
+            white-space: pre;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-brand">CORAZA-AUDIT</div>
+        <div class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="rules.html">Rules</a>
+            <a href="config.html" class="active">Config</a>
+        </div>
+        <div style="padding-right: 2rem;"><span style="font-size: 10px; color: rgba(0,0,0,0.3);">+</span></div>
+    </nav>
+    <div class="main">
+        <div class="panel-left">
+            <h1>Engine Config</h1>
+            <div id="directives-list"></div>
+        </div>
+        <div class="panel-right">
+            <div class="file-tabs">
+                <div class="tab active" onclick="showFile('coraza')">coraza.conf</div>
+                <div class="tab" onclick="showFile('compose')">docker-compose.yml</div>
+            </div>
+            <div class="code-view" id="code-content">Loading...</div>
+        </div>
+    </div>
+    <script>
+        let configData = null;
+        async function fetchConfig() {
+            const res = await fetch('/api/config');
+            configData = await res.json();
+            const list = document.getElementById('directives-list');
+            list.innerHTML = '';
+            configData.directives.slice(0, 12).forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'config-card';
+                card.innerHTML = `<div class="config-label">${d.directive}</div><div class="config-value">${d.value}</div>`;
+                list.appendChild(card);
+            });
+            showFile('coraza');
+        }
+        function showFile(type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if (type === 'coraza') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('code-content').innerText = configData.config_raw;
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('code-content').innerText = configData.compose_raw;
+            }
+        }
+        fetchConfig();
+    </script>
+</body>
+
+</html>
