@@ -217,12 +217,17 @@
         .panel-right-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             padding: 0 2rem;
-            height: 44px;
+            height: 52px;
             border-bottom: 0.8px solid var(--border);
-            font-size: 0.7rem;
+            font-size: 0.72rem;
+            font-weight: 500;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
             color: var(--fg-subtle);
+            flex-shrink: 0;
+            background: #ffffff;
         }
 
         .log-scroll {
@@ -356,7 +361,10 @@
             </div>
         </div>
         <div class="panel-right">
-            <div class="panel-right-header">Detection Signatures — Analysis</div>
+            <div class="panel-right-header">
+                <span>Detection Signatures — Analysis</span>
+                <span class="plus">+</span>
+            </div>
             <div class="log-scroll">
                 <table>
                     <thead>

@@ -229,13 +229,18 @@
         }
 
         .tab {
-            padding: 0.8rem 1.5rem;
-            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            height: 52px;
+            font-size: 0.72rem;
             font-weight: 600;
+            letter-spacing: 0.05em;
             color: var(--fg-muted);
             cursor: pointer;
             border-right: 0.8px solid var(--border);
             text-transform: uppercase;
+            transition: all 0.15s;
         }
 
         .tab.active {

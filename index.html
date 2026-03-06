@@ -368,9 +368,10 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 2rem;
-            height: 44px;
+            height: 52px;
             border-bottom: 0.8px solid var(--border);
             flex-shrink: 0;
+            background: #ffffff;
         }
 
         .panel-right-header-title {
@@ -783,7 +784,24 @@
             }
         }
         async function replayAttacks() {
-            alert('Run: python replay_and_report.py\nThen click "Sync" to refresh logs.');
+            try {
+                const btn = document.querySelector('button[onclick="replayAttacks()"]');
+                const originalText = btn.textContent;
+                btn.textContent = 'Launching...';
+                btn.disabled = true;
+                const response = await fetch('/api/replay');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert('PowerShell Attack Suite (48 payloads) launched successfully. The dashboard will update as logs arrive.');
+                    fetchData();
+                } else {
+                    alert('Error launching suite: ' + data.message);
+                }
+                btn.textContent = originalText;
+                btn.disabled = false;
+            } catch (err) {
+                alert('Connection failed while launching attacks.');
+            }
         }
         fetchData();
         setInterval(fetchData, 8000);
