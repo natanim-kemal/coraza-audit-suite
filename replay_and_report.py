@@ -3,7 +3,6 @@ import re
 import os
 from datetime import datetime
 
-# Use current directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)) or ".")
 
 result = subprocess.run(
