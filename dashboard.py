@@ -90,18 +90,17 @@ def get_config():
 
 
 class DashboardHandler(http.server.SimpleHTTPRequestHandler):
+    def _send_json(self, data, status=200):
+        self.send_response(status)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode('utf-8'))
+
     def do_GET(self):
         if self.path == '/api/logs':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            attacks = parse_waf_logs()
-            self.wfile.write(json.dumps({"attacks": attacks}).encode('utf-8'))
+            self._send_json({"attacks": parse_waf_logs()})
 
         elif self.path == '/api/rules':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
             attacks = parse_waf_logs()
             rules = {}
             for a in attacks:
@@ -119,24 +118,24 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
                 rules[rid]["hit_count"] += 1
                 if a["uri"] not in rules[rid]["uris"]:
                     rules[rid]["uris"].append(a["uri"])
-            self.wfile.write(json.dumps({"rules": list(rules.values())}).encode('utf-8'))
+            self._send_json({"rules": list(rules.values())})
 
         elif self.path == '/api/config':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            config = get_config()
-            self.wfile.write(json.dumps(config).encode('utf-8'))
+            self._send_json(get_config())
+
+        elif self.path == '/api/replay':
+            try:
+                subprocess.Popen(["powershell.exe", "-ExecutionPolicy", "Bypass", "-File", "attack_suite.ps1"])
+                self._send_json({"status": "success", "message": "Attack suite started"})
+            except Exception as e:
+                self._send_json({"status": "error", "message": str(e)}, 500)
 
         elif self.path == '/api/clear':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
             try:
                 subprocess.run(["docker", "compose", "up", "-d", "--force-recreate", "waf"], check=True)
-                self.wfile.write(json.dumps({"status": "success", "message": "WAF container recreated, logs cleared"}).encode('utf-8'))
+                self._send_json({"status": "success", "message": "Logs cleared"})
             except Exception as e:
-                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
+                self._send_json({"status": "error", "message": str(e)}, 500)
 
         elif self.path == '/':
             self.path = '/index.html'

@@ -212,6 +212,50 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            background: #fafafa;
+        }
+
+        .rule-tabs {
+            display: flex;
+            border-bottom: 0.8px solid var(--border);
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            height: 52px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--fg-muted);
+            cursor: pointer;
+            border-right: 0.8px solid var(--border);
+            text-transform: uppercase;
+            transition: all 0.15s;
+        }
+
+        .tab.active {
+            background: #fafafa;
+            color: var(--fg);
+        }
+
+        .tab:hover:not(.active) {
+            background: #fcfcfc;
+            color: var(--fg-muted);
+        }
+
+        .rule-view {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .rule-view.active {
+            display: flex;
         }
 
         .panel-right-header {
@@ -361,23 +405,57 @@
             </div>
         </div>
         <div class="panel-right">
-            <div class="panel-right-header">
-                <span>Detection Signatures — Analysis</span>
-                <span class="plus">+</span>
+            <div class="rule-tabs">
+                <div class="tab active" onclick="switchTab('custom')">Custom security patches</div>
+                <div class="tab" onclick="switchTab('standard')">Core Rule Set (CRS)</div>
             </div>
-            <div class="log-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 15%;">Rule ID</th>
-                            <th style="width: 45%;">Description / Tags</th>
-                            <th style="width: 15%;">Severity</th>
-                            <th style="width: 15%;">Hits</th>
-                            <th style="width: 10%;">File</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rules-body"></tbody>
-                </table>
+
+            <div id="custom-view" class="rule-view active">
+                <div class="panel-right-header">
+                    <span>Virtual Patching Logs</span>
+                    <span class="plus">+</span>
+                </div>
+                <div class="log-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Rule ID</th>
+                                <th style="width: 45%;">Description / Tags</th>
+                                <th style="width: 15%;">Severity</th>
+                                <th style="width: 15%;">Hits</th>
+                                <th style="width: 10%;">File</th>
+                            </tr>
+                        </thead>
+                        <tbody id="custom-rules-body">
+                            <tr>
+                                <td colspan="5" style="text-align:center; color:var(--fg-subtle); padding:2rem;">No
+                                    custom rules
+                                    triggered.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="standard-view" class="rule-view">
+                <div class="panel-right-header">
+                    <span>Standard Signature Logs</span>
+                    <span class="plus">+</span>
+                </div>
+                <div class="log-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Rule ID</th>
+                                <th style="width: 45%;">Description / Tags</th>
+                                <th style="width: 15%;">Severity</th>
+                                <th style="width: 15%;">Hits</th>
+                                <th style="width: 10%;">File</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rules-body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -395,8 +473,14 @@
             const res = await fetch('/api/rules');
             const data = await res.json();
             const tbody = document.getElementById('rules-body');
+            const customTbody = document.getElementById('custom-rules-body');
+
             document.getElementById('unique-rules-count').innerText = data.rules.length;
+
             tbody.innerHTML = '';
+            let customCount = 0;
+            let standardCount = 0;
+
             data.rules.forEach((r, i) => {
                 const row = document.createElement('tr');
                 row.style.animation = `slideIn 0.25s ease ${i * 0.04}s both`;
@@ -410,8 +494,33 @@
                     <td style="font-weight:600;">${r.hit_count}</td>
                     <td style="font-size:0.7rem; color:var(--fg-subtle);">${r.rule_file.split('/').pop()}</td>
                 `;
-                tbody.appendChild(row);
+
+                if (parseInt(r.rule_id) >= 990000) {
+                    if (customCount === 0) customTbody.innerHTML = '';
+                    customTbody.appendChild(row);
+                    customCount++;
+                } else {
+                    tbody.appendChild(row);
+                    standardCount++;
+                }
             });
+
+            if (customCount === 0) {
+                customTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--fg-subtle); padding:2rem;">No custom rules triggered yet.</td></tr>';
+            }
+        }
+
+        function switchTab(type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.rule-view').forEach(v => v.classList.remove('active'));
+
+            if (type === 'custom') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('custom-view').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('standard-view').classList.add('active');
+            }
         }
         fetchRules();
     </script>

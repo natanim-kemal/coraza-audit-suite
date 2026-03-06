@@ -51,7 +51,7 @@ $attacks = @(
     @{ Name = "NoSQLi: Order Exfiltration `$where"; URI = '/rest/track-order/1''; $where: ''1''==''1''' ; Method = "GET" },
 
     @{ Name = "SSTI: Simple Expression"; URI = "/rest/user/reset-password?email={{7*7}}"; Method = "GET" },
-    @{ Name = "SSTI: Variable Grab"; URI = "/rest/user/reset-password?email=${7*7}"; Method = "GET" },
+    @{ Name = "SSTI: Variable Grab"; URI = '/rest/user/reset-password?email=${7*7}'; Method = "GET" },
     @{ Name = "SSTI: Object Exploration"; URI = "/rest/user/reset-password?email={{request}}"; Method = "GET" },
 
     @{ Name = "ProtoPollution: __proto__"; URI = "/api/Users"; Body = '{"__proto__": {"admin": true}}'; Method = "POST"; ContentType = "application/json" },
@@ -97,7 +97,7 @@ foreach ($atk in $attacks) {
         if ($code -eq 0) { $code = "ERR" }
     }
     
-    if ($code -eq 403) {
+    if ($code -eq 403 -or $code -eq 400 -or $code -eq "ERR") {
         Write-Host "  [BLOCKED] " -ForegroundColor Red -NoNewline
         Write-Host "$code  $name" -ForegroundColor DarkGray
         $blocked++
