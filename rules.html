@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coraza WAF — Active Rules</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font: 'Inter', -apple-system, sans-serif;
+            --bg: #ffffff;
+            --fg: #121212;
+            --fg-muted: #555555;
+            --fg-subtle: rgba(0, 0, 0, 0.35);
+            --border: rgba(0, 0, 0, 0.06);
+            --border-active: rgba(0, 0, 0, 0.6);
+            --accent: #000000;
+            --accent-fg: #ffffff;
+            --radius: 0px;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--fg);
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 52px;
+            border-bottom: 0.8px solid var(--border);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-brand {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-links {
+            display: flex;
+            height: 100%;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 0 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--fg-muted);
+            text-decoration: none;
+            border-left: 0.8px solid var(--border);
+            position: relative;
+        }
+
+        .nav-links a:last-child {
+            border-right: 0.8px solid var(--border);
+        }
+
+        .nav-links a.active {
+            color: var(--fg);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1.6px;
+            background: var(--fg);
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 460px 1fr;
+            height: calc(100vh - 52px);
+            overflow: hidden;
+        }
+
+        .panel-left {
+            border-right: 0.8px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 2.5rem 2rem;
+        }
+
+        .hero-eyebrow {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--fg-subtle);
+            margin-bottom: 1rem;
+        }
+
+        .panel-left h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .panel-left p {
+            font-size: 0.9rem;
+            color: var(--fg-muted);
+            line-height: 1.6;
+        }
+
+        .panel-right {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-right-header {
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            height: 44px;
+            border-bottom: 0.8px solid var(--border);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--fg-subtle);
+        }
+
+        .log-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.7rem 1rem;
+            font-size: 0.68rem;
+            color: var(--fg-subtle);
+            background: #fff;
+            border-bottom: 0.8px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            font-size: 0.82rem;
+            border-bottom: 0.8px solid var(--border);
+            vertical-align: top;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 0;
+            border: 0.8px solid var(--border);
+        }
+
+        .severity-2 {
+            background: rgba(220, 38, 38, 0.08);
+            color: #dc2626;
+            border-color: rgba(220, 38, 38, 0.2);
+        }
+
+        .severity-low {
+            color: var(--fg-muted);
+        }
+
+        .rule-id {
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+        }
+
+        .tag {
+            font-size: 0.65rem;
+            background: #f4f4f5;
+            padding: 0.1rem 0.4rem;
+            color: #71717a;
+            border: 0.8px solid var(--border);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-brand">CORAZA-AUDIT</div>
+        <div class="nav-links">
+            <a href="index.html">Dashboard</a>
+            <a href="rules.html" class="active">Rules</a>
+            <a href="config.html">Config</a>
+        </div>
+        <div style="padding-right: 2rem;"><span style="font-size: 10px; color: rgba(0,0,0,0.3);">+</span></div>
+    </nav>
+    <div class="main">
+        <div class="panel-left">
+            <div class="hero-eyebrow">Intelligence</div>
+            <h1>Rules Inventory</h1>
+            <p>This view displays unique Core Rule Set (CRS) and custom rules that have been triggered in the current
+                log buffer. Analyze rule severity and classification tags.</p>
+            <div style="margin-top: 2rem; border-top: 0.8px solid var(--border); padding-top: 1.5rem;">
+                <div style="font-size: 0.7rem; color: var(--fg-subtle); margin-bottom: 0.5rem;">METRIC</div>
+                <div style="font-size: 2.5rem; font-weight: 700;" id="unique-rules-count">0</div>
+                <div style="font-size: 0.8rem; color: var(--fg-muted);">Active Signature Detections</div>
+            </div>
+        </div>
+        <div class="panel-right">
+            <div class="panel-right-header">Detection Signatures — Analysis</div>
+            <div class="log-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Rule ID</th>
+                            <th style="width: 45%;">Description / Tags</th>
+                            <th style="width: 15%;">Severity</th>
+                            <th style="width: 15%;">Hits</th>
+                            <th style="width: 10%;">File</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rules-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        async function fetchRules() {
+            const res = await fetch('/api/rules');
+            const data = await res.json();
+            const tbody = document.getElementById('rules-body');
+            document.getElementById('unique-rules-count').innerText = data.rules.length;
+            tbody.innerHTML = '';
+            data.rules.forEach((r, i) => {
+                const row = document.createElement('tr');
+                row.style.animation = `slideIn 0.25s ease ${i * 0.04}s both`;
+                row.innerHTML = `
+                    <td class="rule-id">#${r.rule_id}</td>
+                    <td>
+                        <div style="font-weight:500;">${escapeHTML(r.message)}</div>
+                        <div class="tag-list">${r.tags.map(t => `<span class="tag">${escapeHTML(t)}</span>`).join('')}</div>
+                    </td>
+                    <td><span class="severity-badge ${r.severity === '2' ? 'severity-2' : 'severity-low'}">${r.severity}</span></td>
+                    <td style="font-weight:600;">${r.hit_count}</td>
+                    <td style="font-size:0.7rem; color:var(--fg-subtle);">${r.rule_file.split('/').pop()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        fetchRules();
+    </script>
+</body>
+
+</html>
