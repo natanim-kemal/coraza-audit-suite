@@ -329,13 +329,12 @@
         }
 
         .desc-list li {
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             color: var(--fg-muted);
-            padding: 0.5rem 0;
+            padding: 0.6rem 0;
             border-bottom: 0.8px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
         }
 
         .desc-list li:last-child {
@@ -344,13 +343,18 @@
 
         .tag {
             display: inline-block;
+            min-width: 64px;
+            margin-right: 1rem;
             padding: 0.15rem 0.5rem;
             font-size: 0.7rem;
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
             border: 0.8px solid var(--border);
             border-radius: var(--radius);
-            color: var(--fg-muted);
+            color: var(--fg-subtle);
             background: rgba(0, 0, 0, 0.02);
+            text-align: center;
         }
 
         .panel-right {
@@ -648,11 +652,12 @@
                 <h3>Architecture</h3>
                 <p>Coraza is a high-performance, Go-native WAF engine acting as a drop-in replacement for ModSecurity.
                 <ul class="desc-list">
-                    <li><span class="tag">Engine</span> Coraza WAF (Go)</li>
-                    <li><span class="tag">Proxy</span> Caddy Server</li>
-                    <li><span class="tag">Target</span> OWASP Juice Shop</li>
-                    <li><span class="tag">Rules</span> OWASP CRS v4</li>
-                    <li><span class="tag">Port</span> 8080</li>
+                    <li><span class="tag">Engine</span> <span>Coraza WAF (Go)</span></li>
+                    <li><span class="tag">Proxy</span> <span>Caddy Server</span></li>
+                    <li><span class="tag">Target</span> <span>OWASP Juice Shop</span></li>
+                    <li><span class="tag">Rules</span> <span>OWASP CRS v4</span></li>
+                    <li><span class="tag">Port</span> <span
+                            style="font-family: monospace; font-weight: 600;">8080</span></li>
                 </ul>
             </div>
         </div>
