@@ -1,48 +1,58 @@
-# Coraza WAF Lab
+# Coraza WAF Audit Suite
 
-This lab utilizes **Coraza**, a high-performance Web Application Firewall rebuilt in Go, providing a modern alternative to the classic C++ ModSecurity.
+A comprehensive security monitoring and testing environment for **Coraza WAF**, featuring a real-time dashboard and an extensive attack suite.
 
-## Key Features
-- **Native Go Engine**: Leverages the speed and safety of the Coraza Go library.
-- **Caddy Server**: Uses Caddy as the web server and reverse proxy.
-- **OWASP CRS v4**: Compatible with the latest Core Rule Set.
-- **Blocking Mode**: WAF is configured to block malicious requests.
+## 🚀 Key Features
 
-## Architecture
-- **WAF Engine**: gbe0/coraza (Coraza WAF with Caddy)
-- **Reverse Proxy**: Caddy
-- **Target App**: OWASP Juice Shop
-- **Port**: 8080
+- **Native Go Engine**: Leverages the high-performance Coraza WAF library.
+- **Security Dashboard**: Real-time web UI for monitoring threat landscapes, rule matches, and audit logs.
+- **Stateful Live Feed**: Intelligent log streaming that appends new threats without UI flickering.
+- **48-Payload Attack Suite**: Advanced PowerShell testing suite covering SQLi, XSS, RCE, LFI, SSRF, and Prototype Pollution.
+- **OWASP CRS v4**: Fully integrated with the latest Core Rule Set.
+- **Automated Reporting**: Generates instant Markdown analysis of WAF performance.
 
-## Quick Start
+## 🏗️ Architecture
 
-1. **Spin up the environment**:
-   ```bash
-   docker-compose up -d
-   ```
+- **WAF Engine**: `gbe0/coraza` (Coraza + Caddy)
+- **Target Application**: OWASP Juice Shop
+- **Dashboard Backend**: Python 3 (Internal API)
+- **Frontend**: Vanilla JS / CSS (Tailored Aesthetic)
+- **Log Management**: Docker Audit Log Tail (1000 lines)
 
-2. **Run the Attack Replay**:
-   ```bash
-   ./replay_and_report.sh
-   ```
+## 🛠️ Quick Start
 
-   Or use PowerShell:
-   ```powershell
-   .\replay_and_report.ps1
-   ```
+### 1. Spin up the WAF & Juice Shop
+```bash
+docker-compose up -d
+```
 
-## Configuration Files
-- `docker-compose.yml`: Container orchestration.
-- `replay_and_report.sh`: Bash script to replay attacks and generate report.
-- `replay_and_report.py`: Python script that parses WAF logs and generates attack_report.md.
-- `attack_report.md`: Generated report showing detected/blocked attacks.
+### 2. Start the Security Dashboard
+```bash
+python dashboard.py
+```
+> Access the UI at `http://localhost:8081`
 
-## Test Attacks
-The following attack types are tested:
-- SQL Injection (OR 1=1)
-- XSS (Script Tag)
-- Path Traversal (etc/passwd)
-- Command Injection (whoami)
+### 3. Execute Attack Suite
+```powershell
+.\attack_suite.ps1
+```
 
-## Why Coraza?
-Coraza is designed to be a drop-in replacement for ModSecurity but with the benefits of a modern Go codebase: better memory safety, easier extensibility, and compatibility with ModSecurity's SecLang.
+## 📂 Core Components
+
+- **`dashboard.py`**: The brain of the dashboard, parsing Docker logs and serving the monitoring API.
+- **`index.html`**: The main monitor interface with real-time stats and live log feed.
+- **`attack_suite.ps1`**: A sophisticated testing script with 48 distinct security payloads.
+- **`coraza.conf`**: Optimized WAF engine configuration.
+- **`replay_and_report.py`**: Standalone analysis tool that generates `attack_report.md`.
+
+## 🛡️ Security Lab Focus
+This suite is designed to test WAF efficacy against modern attack vectors including:
+- **SQL Injection**: Login bypass, union-based, and blind SQLi.
+- **XSS**: Script injection, event handlers, and iframe-based attacks.
+- **Modern Vectors**: Prototype Pollution, SSTI, Log4Shell, and NoSQLi.
+- **Protocol Abuse**: CRLF injection and HTTP splitting.
+
+## 📊 Dashboard Access
+- **Main View**: `http://localhost:8081/index.html`
+- **Rules Inventory**: `http://localhost:8081/rules.html`
+- **Engine Config**: `http://localhost:8081/config.html`
