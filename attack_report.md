@@ -1,5 +1,5 @@
 # Coraza WAF Attack Analysis Report
-Generated on: 2026-03-07 00:53:08
+Generated on: 2026-03-07 15:43:49
 
 | Status | URI | Rule ID | Message | Matched Data |
 | :--- | :--- | :--- | :--- | :--- |
