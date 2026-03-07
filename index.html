@@ -449,17 +449,45 @@
             background: rgba(0, 0, 0, 0.012);
         }
 
-        .badge-blocked {
+        .severity-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.3rem;
-            padding: 0.2rem 0.55rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--danger);
-            background: var(--danger-subtle);
-            border: 0.8px solid rgba(220, 38, 38, 0.15);
+            padding: 0.2rem 0.5rem;
             border-radius: var(--radius);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            line-height: 1;
+        }
+
+        .severity-CRITICAL,
+        .severity-2 {
+            background: rgba(220, 38, 38, 0.1);
+            color: #dc2626;
+            border: 0.8px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .severity-ERROR,
+        .severity-3 {
+            background: rgba(234, 88, 12, 0.1);
+            color: #ea580c;
+            border: 0.8px solid rgba(234, 88, 12, 0.2);
+        }
+
+        .severity-WARNING,
+        .severity-4 {
+            background: rgba(234, 179, 8, 0.1);
+            color: #ca8a04;
+            border: 0.8px solid rgba(234, 179, 8, 0.2);
+        }
+
+        .severity-NOTICE,
+        .severity-low,
+        .severity-UNKNOWN {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 0.8px solid rgba(59, 130, 246, 0.2);
         }
 
         .rule-code {
@@ -656,7 +684,7 @@
                     <li><span class="tag">Engine</span> <span>Coraza WAF (Go)</span></li>
                     <li><span class="tag">Proxy</span> <span>Caddy Server</span></li>
                     <li><span class="tag">Target</span> <span>OWASP Juice Shop</span></li>
-                    <li><span class="tag">Rules</span> <span>OWASP CRS v4</span></li>
+                    <li><span class="tag">Rules</span> <span>OWASP CRS v4 & Custom Rules</span></li>
                     <li><span class="tag">Port</span> <span
                             style="font-family: monospace; font-weight: 600;">8080</span></li>
                 </ul>
@@ -675,8 +703,8 @@
                     <thead>
                         <tr>
                             <th style="width: 5%;">#</th>
-                            <th style="width: 9%;">Action</th>
-                            <th style="width: 23%;">URI</th>
+                            <th style="width: 10%;">Severity</th>
+                            <th style="width: 22%;">URI</th>
                             <th style="width: 10%;">Rule ID</th>
                             <th style="width: 23%;">Detection Event</th>
                             <th style="width: 30%;">Payload</th>
@@ -747,7 +775,7 @@
                         row.style.animation = `slideIn 0.2s ease ${delay}s both`;
                         row.innerHTML = `
                             <td style="color:var(--fg-subtle);font-size:0.75rem;font-weight:500;">${String(logCounter).padStart(2, '0')}</td>
-                            <td><span class="badge-blocked">● ${a.status}</span></td>
+                            <td><span class="severity-badge severity-${a.severity || 'UNKNOWN'}">${escapeHTML(a.severity || 'UNKNOWN')}</span></td>
                             <td class="uri-cell" title="${escapeHTML(a.uri)}">${escapeHTML(a.uri)}</td>
                             <td><span class="rule-code">${a.rule_id}</span></td>
                             <td class="msg-cell" title="${escapeHTML(a.message)}">${escapeHTML(a.message)}</td>
